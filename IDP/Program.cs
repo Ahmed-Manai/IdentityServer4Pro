@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using IDP.Data;
+using IdentityServer4.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,13 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+builder.Services.AddIdentityServer()
+	.AddInMemoryClients(Config.Clients) //.AddInMemoryClients(new List<Client>())
+	.AddInMemoryIdentityResources(Config.IdentityResources) //.AddInMemoryIdentityResources(new List<IdentityResource>())
+	.AddInMemoryApiResources(Config.ApiResources) //.AddInMemoryApiResources(new List<ApiResource>())
+	.AddInMemoryApiScopes(Config.ApiScopes) //.AddInMemoryApiScopes(new List<ApiScope>())
+	.AddTestUsers(Config.Users) //.AddTestUsers(new List<IdentityServer4.Test.TestUser>())
+	.AddDeveloperSigningCredential();
 
 var app = builder.Build();
 
@@ -32,6 +40,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseIdentityServer();
 
 app.UseAuthorization();
 
