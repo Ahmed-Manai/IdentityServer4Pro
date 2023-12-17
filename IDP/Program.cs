@@ -2,24 +2,31 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using IDP.Data;
 using IdentityServer4.Models;
+using System.Reflection;
+using SQLitePCL;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+var usersConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+var identityConnection = builder.Configuration.GetConnectionString("IdentityConnection");
+var migrationAssembly = typeof(Program).GetTypeInfo().Assembly.GetName().Name;
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseSqlServer(usersConnection, sql => sql.MigrationsAssembly(migrationAssembly)));
+    
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddIdentityServer()
-	.AddInMemoryClients(Config.Clients) //.AddInMemoryClients(new List<Client>())
-	.AddInMemoryIdentityResources(Config.IdentityResources) //.AddInMemoryIdentityResources(new List<IdentityResource>())
-	.AddInMemoryApiResources(Config.ApiResources) //.AddInMemoryApiResources(new List<ApiResource>())
-	.AddInMemoryApiScopes(Config.ApiScopes) //.AddInMemoryApiScopes(new List<ApiScope>())
-	.AddTestUsers(Config.Users) //.AddTestUsers(new List<IdentityServer4.Test.TestUser>())
+	.AddAspNetIdentity<IdentityUser>()
+    .AddConfigurationStore(option => option.ConfigureDbContext = builder => builder.UseSqlServer(identityConnection, sql => sql.MigrationsAssembly(migrationAssembly)))
+    .AddOperationalStore(option => option.ConfigureDbContext = builder => builder.UseSqlServer(identityConnection, sql => sql.MigrationsAssembly(migrationAssembly)))
 	.AddDeveloperSigningCredential();
 
 var app = builder.Build();
