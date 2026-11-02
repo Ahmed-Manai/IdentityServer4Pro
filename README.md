@@ -98,12 +98,13 @@ git clone https://github.com/Ahmed-Manai/IdentityServer4Pro.git
 cd IdentityServer4Pro
 dotnet restore
 dotnet build
+dotnet ef database update --project IDP
 dotnet run --project IDP --launch-profile https
 ```
 
 If only a newer ASP.NET Core runtime is installed, set `DOTNET_ROLL_FORWARD=Major` before `dotnet run`.
 
-Optionally, recreate the Identity database:
+The SQLite database (`IDP/app.db`) and the developer signing key (`IDP/tempkey.jwk`) are not committed. `dotnet ef database update` creates the Identity database, and the signing key is generated on first run. To recreate the database later, delete `IDP/app.db` and run:
 
 ```bash
 dotnet ef database update --project IDP

@@ -168,3 +168,9 @@ $RECYCLE.BIN/
 *.sdf
 *.sbr
 *.snk
+
+# Local runtime files: dev signing key and SQLite database
+tempkey.jwk
+*.db
+*.db-shm
+*.db-wal
